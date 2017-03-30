@@ -15,8 +15,12 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 template <class DataType>
+class linked_list;
+
+template <class DataType>
 class Node
 {
+	friend class linked_list<DataType>;
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// Constructor
@@ -37,23 +41,28 @@ private:
 	Node *next_ptr;
 };
 
+
 ///////////////////////////////////////////////////////////////////////////////
 // linked list interfaces
 //   
 ///////////////////////////////////////////////////////////////////////////////
-template <class DataType>
+template <typename DataType>
 class linked_list
 {
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// Constructor
 	///////////////////////////////////////////////////////////////////////////
-	linked_list();
+	linked_list() : m_start_ptr(nullptr), m_end_ptr(nullptr)
+	{}
 
 	///////////////////////////////////////////////////////////////////////////
 	// Destructor
 	///////////////////////////////////////////////////////////////////////////
-	virtual ~linked_list();
+	virtual ~linked_list()
+	{
+		delete_all();
+	}
 
 	///////////////////////////////////////////////////////////////////////////
 	// Insert a node at the begin of a linked list
@@ -63,7 +72,22 @@ public:
 	// @remarks the linked list start pointer node is updated to point to the 
 	//  new node
 	///////////////////////////////////////////////////////////////////////////
-	void insert_begin(DataType);
+	void insert_begin(const DataType data_in)
+	{
+		Node<DataType> *new_ptr = new Node<DataType>(data_in);
+
+		// List is empty, insert first node to the list
+		if (is_empty())
+		{
+			m_start_ptr = new_ptr;
+			m_end_ptr = new_ptr;
+		}
+		else
+		{
+			new_ptr->next_ptr = m_start_ptr;
+			m_start_ptr = new_ptr;
+		}
+	}
 
 	///////////////////////////////////////////////////////////////////////////
 	// Insert a node at the end of a linked list
@@ -73,7 +97,22 @@ public:
 	// @remarks the linked list end pointer node is updated to point to the new 
 	//  node
 	///////////////////////////////////////////////////////////////////////////
-	void insert_end(DataType);
+	void insert_end(const DataType data_in)
+	{
+		Node<DataType> *new_ptr = new Node<DataType>(data_in);
+
+		// List is empty, insert first node to the list
+		if (is_empty())
+		{
+			m_start_ptr = new_ptr;
+			m_end_ptr = new_ptr;
+		}
+		else
+		{
+			m_end_ptr->next_ptr = new_ptr;
+			m_end_ptr = new_ptr;
+		}
+	}
 
 	///////////////////////////////////////////////////////////////////////////
 	// Delete a node at the begin of a linked list
@@ -81,27 +120,131 @@ public:
 	// @remarks the linked list start pointer node is updated to point to the 
 	//  next node
 	///////////////////////////////////////////////////////////////////////////
-	void delete_begin();
+	void delete_begin(void)
+	{
+		if (!is_empty())
+		{
+			Node<DataType> *temp_ptr = m_start_ptr->next_ptr;
+			delete m_start_ptr;
+			m_start_ptr = temp_ptr;
+		}
+	}
 
 	///////////////////////////////////////////////////////////////////////////
-	// delete a node at the end of a linked list
+	// Delete a node at the end of a linked list
 	//
 	// @remarks the linked list end pointer node is updated to point to the 
 	//  next node
 	///////////////////////////////////////////////////////////////////////////
-	void delete_end();
+	void delete_end(void)
+	{
+		Node<DataType> *temp_ptr = m_start_ptr;
+		while (temp_ptr && (temp_ptr->next_ptr != m_end_ptr))
+		{
+			temp_ptr = temp_ptr->next_ptr;
+		}
+		delete m_end_ptr;
+		m_end_ptr = temp_ptr;
+		m_end_ptr->next_ptr = nullptr;
+	}
 
 	///////////////////////////////////////////////////////////////////////////
-	// delete linked list and data of each node
+	// Delete linked list and data of each node
 	//
 	///////////////////////////////////////////////////////////////////////////
-	void delete_all();
+	void delete_all(void)
+	{
+		while (m_start_ptr)
+		{
+			delete_begin();
+		}
+		m_start_ptr = nullptr;
+		m_end_ptr = nullptr;
+	}
 
 	///////////////////////////////////////////////////////////////////////////
-	// Return size of a linked list
+	// Print all data of a linked list
+	//
 	///////////////////////////////////////////////////////////////////////////
-	void size();
-	
+	void print_all(void)
+	{
+		Node<DataType> *temp_ptr = m_start_ptr;
+		while (temp_ptr)
+		{
+			std::cout << temp_ptr->data << std::endl;
+			temp_ptr = temp_ptr->next_ptr;
+		}
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// Calculate size of a linked list
+	//
+	// @return size of linked list
+	///////////////////////////////////////////////////////////////////////////
+	unsigned int size(void)
+	{
+		Node<DataType> *temp_ptr = m_start_ptr;
+		unsigned int count = 0;
+		while (temp_ptr)
+		{
+			count++;
+			temp_ptr = temp_ptr->next_ptr;
+		}
+		return count;
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// Remove duplicate nodes of a linked list
+	///////////////////////////////////////////////////////////////////////////
+	void remove_duplicates(void)
+	{
+		Node<DataType> *cur_ptr = m_start_ptr;
+		while (cur_ptr)
+		{
+			Node<DataType> *runner_ptr = cur_ptr;
+			while (runner_ptr->next_ptr)
+			{
+				if (runner_ptr->next_ptr->data == cur_ptr->data)
+				{
+					Node<DataType> *temp_ptr = runner_ptr->next_ptr->next_ptr;
+					delete runner_ptr->next_ptr;
+					runner_ptr->next_ptr = temp_ptr;
+				}
+				else
+				{
+					runner_ptr = runner_ptr->next_ptr;
+				}
+			}
+			cur_ptr = cur_ptr->next_ptr;
+		}
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// Return kth from last of a linked list
+	///////////////////////////////////////////////////////////////////////////
+	DataType get_kth_from_last_node(const unsigned int k)
+	{
+		Node<DataType> *fast_ptr = m_start_ptr;
+		Node<DataType> *slow_ptr = m_start_ptr;
+		
+		// Let fast pointer advance k nodes
+		for (unsigned int i = 0; i < k; i++)
+		{
+			if (!fast_ptr)
+			{
+				return NULL;
+			}
+			fast_ptr = fast_ptr->next_ptr;
+		}
+
+		// Let slow pointer move k nodes after fast pointer
+		while (fast_ptr)
+		{
+			fast_ptr = fast_ptr->next_ptr;
+			slow_ptr = slow_ptr->next_ptr;
+		}
+		return slow_ptr->data;
+	}
 private:
 	/// Pointer points to the 1st node of a linked list
 	Node<DataType> *m_start_ptr;
@@ -114,7 +257,10 @@ private:
 	//
 	// @return True if list is empty, False otherwise
 	///////////////////////////////////////////////////////////////////////////
-	bool is_empty();
+	bool is_empty()
+	{
+		return (m_start_ptr == nullptr);
+	}
 };
 
-#endif LINKED_LIST_H
+#endif 
