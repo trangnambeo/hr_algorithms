@@ -2,10 +2,6 @@
 // Solve Cracking the code interview
 //
 ///////////////////////////////////////////////////////////////////////////////
-#define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
-#include <crtdbg.h>
-
 #include "stdafx.h"
 #include "linked_list.h"
 #include <memory>
@@ -71,6 +67,68 @@ void prob_2_4_partition(void)
 	partitioned_list->print_all();
 }
 
+void prob_2_5_sum_list(void)
+{
+	std::shared_ptr<linked_list<int>> first_number(new linked_list<int>);
+	first_number->insert_begin(7);
+	first_number->insert_begin(1);
+	first_number->insert_begin(6);
+	
+	std::shared_ptr<linked_list<int>> second_number(new linked_list<int>);
+	second_number->insert_begin(5);
+	second_number->insert_begin(9);
+	second_number->insert_begin(2);
+	second_number->insert_begin(9);
+	second_number->insert_begin(8);
+
+	std::shared_ptr<linked_list<int>> result_number(new linked_list<int>);
+	
+	Node<int> *first_ptr = first_number->get_head();
+	Node<int> *second_ptr = second_number->get_head();
+	int carrier = 0;
+	int sum = 0;
+
+	// Go through 2 lists, stop at shorter one
+	while (first_ptr && second_ptr)
+	{
+		sum = first_ptr->data + second_ptr->data + carrier;
+		result_number->insert_begin(sum % 10);
+		carrier = sum / 10;
+
+		first_ptr = first_ptr->next_ptr;
+		second_ptr = second_ptr->next_ptr;
+	}
+	if (!first_ptr)
+	{
+		while (second_ptr)
+		{
+			sum = second_ptr->data + carrier;
+			result_number->insert_begin(sum % 10);
+			carrier = sum / 10;
+
+			second_ptr = second_ptr->next_ptr;
+		}
+	}
+	else if (!second_ptr)
+	{
+		while (first_ptr)
+		{
+			sum = first_ptr->data + carrier;
+			result_number->insert_begin(sum % 10);
+			carrier = sum / 10;
+
+			first_ptr = first_ptr->next_ptr;
+		}
+	}
+
+	if (carrier)
+	{
+		result_number->insert_begin(carrier);
+	}
+	std::cout << "Result is: " << std::endl;
+	result_number->print_all();
+}
+
 void check_exit(void)
 {
 	char c;
@@ -89,8 +147,8 @@ int main()
 
 	prob_2_4_partition();
 	
-	check_exit();
-	_CrtDumpMemoryLeaks();
+	prob_2_5_sum_list();
+
     return 1;
 }
 
