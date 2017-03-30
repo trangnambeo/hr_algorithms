@@ -9,6 +9,7 @@
 #define LINKED_LIST_H
 
 #include<iostream>
+#include <memory>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Implement a Node of a linked list
@@ -245,6 +246,28 @@ public:
 		}
 		return slow_ptr->data;
 	}
+
+	///////////////////////////////////////////////////////////////////////////
+	// Partition a list around a value
+	///////////////////////////////////////////////////////////////////////////
+	void partition_list(const DataType pivot,
+		std::shared_ptr<linked_list<DataType>> partitioned_list)
+	{
+		Node<DataType> *runner_ptr = m_start_ptr;
+		while (runner_ptr)
+		{
+			if (runner_ptr->data < pivot)
+			{
+				partitioned_list->insert_begin(runner_ptr->data);
+			}
+			else
+			{
+				partitioned_list->insert_end(runner_ptr->data);
+			}
+			runner_ptr = runner_ptr->next_ptr;
+		}
+	}
+
 private:
 	/// Pointer points to the 1st node of a linked list
 	Node<DataType> *m_start_ptr;
